@@ -1,12 +1,15 @@
-const { response } = require("express");
 const SQL = require("../SQLQuesries/ProductSQL.js");
-
+const productConstructor = require("../ProductConstructor.js");
 class ProductController {
     async getProducts(req, res) {
         try {
-            const products = await SQL.getProducts().then((response) => response.rows);
+            let products = await SQL.getProducts().then((response) => response.rows);
+            products = await Promise.all(
+                products.map(async (product) => await productConstructor(product))
+            );
             return res.json(products);
         } catch (error) {
+            console.log(error);
             return res.status(500).json({ message: error.message });
         }
     }
@@ -19,7 +22,10 @@ class ProductController {
                     message: "id is required",
                 });
             }
-            const product = await SQL.getProductById(id).then((response) => response.rows[0]);
+            const product = await SQL.getProductById(id).then(
+                async (response) => await productConstructor(response.rows[0])
+            );
+
             return res
                 .status(product ? 200 : 404)
                 .json(product || { message: "No product with this id" });
