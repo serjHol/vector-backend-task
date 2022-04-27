@@ -47,7 +47,7 @@ class ProductController {
                 supplierID,
                 categoryID,
                 price
-            ).then((response) => response.rows[0]);
+            ).then(async (response) => await productConstructor(response.rows[0]));
             return res.json(product);
         } catch (error) {
             return res.status(500).json({ message: error.message });
